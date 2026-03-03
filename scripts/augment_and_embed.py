@@ -15,17 +15,19 @@ import time
 import pandas as pd
 import numpy as np
 import requests
+from dotenv import load_dotenv
+
+# Load .env from the repo root
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(_ROOT, ".env"))
 
 # ────────────────────────────────────────────
 # CONFIG
 # ────────────────────────────────────────────
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
 EMBEDDING_MODEL = "text-embedding-004"
-EMBED_URL = (
-    f"https://generativelanguage.googleapis.com/v1beta/models/"
-    f"{EMBEDDING_MODEL}:embedContent?key={GEMINI_API_KEY}"
-)
 HEADERS = {"Content-Type": "application/json"}
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRAPED_CSV = os.path.join(BASE_DIR, "shl_assessments.csv")
@@ -37,22 +39,33 @@ OUTPUT_CSV  = os.path.join(BASE_DIR, "shl_assessments_v2.csv")
 # EMBEDDING HELPER
 # ────────────────────────────────────────────
 def get_embedding(text: str, retries: int = 3) -> list:
-    """Call Gemini text-embedding-004 and return the vector."""
-    if not GEMINI_API_KEY:
-        raise ValueError("GEMINI_API_KEY env variable not set.")
+    """Call Gemini embedding model and return the vector."""
+    api_key = os.getenv("GEMINI_API_KEY", GEMINI_API_KEY)
+    if not api_key or api_key == "your_gemini_api_key_here":
+        raise ValueError(
+            "❌ GEMINI_API_KEY is missing or still a placeholder!\n"
+            "   1. Put your real key in .env file\n"
+            "   2. Restart your terminal/VS Code\n"
+            "   Get key: https://aistudio.google.com/app/apikey"
+        )
+    embed_url = (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{EMBEDDING_MODEL}:embedContent?key={api_key}"
+    )
     payload = {
         "model": f"models/{EMBEDDING_MODEL}",
-        "content": {"parts": [{"text": text[:8000]}]},  # API limit
+        "content": {"parts": [{"text": text[:8000]}]},
     }
     for attempt in range(retries):
         try:
-            r = requests.post(EMBED_URL, json=payload, headers=HEADERS, timeout=30)
+            r = requests.post(embed_url, json=payload, headers=HEADERS, timeout=30)
             r.raise_for_status()
             return r.json()["embedding"]["values"]
         except Exception as e:
             print(f"  [embed attempt {attempt+1}] Error: {e}")
             time.sleep(2 ** attempt)
     return []
+
 
 
 # ────────────────────────────────────────────
