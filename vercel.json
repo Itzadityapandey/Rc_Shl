@@ -9,18 +9,19 @@
             "src": "api/*.py",
             "use": "@vercel/python",
             "config": {
-                "maxDuration": 30
+                "maxDuration": 30,
+                "includeFiles": "*.csv"
             }
         }
     ],
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
+            "source": "/api/(.*)",
+            "destination": "/api/$1"
         },
         {
-            "src": "/(.*)",
-            "dest": "/frontend/$1"
+            "source": "/(.*)",
+            "destination": "/frontend/$1"
         }
     ]
 }
