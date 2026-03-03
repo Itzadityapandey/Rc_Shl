@@ -270,6 +270,7 @@ class handler(BaseHTTPRequestHandler):
             test_types = _parse_test_types(row.get("test_type", ""))
             recommendations.append({
                 "url": row.get("url", ""),
+                "name": row.get("name", ""),
                 "adaptive_support": str(row.get("adaptive_support", "No")).strip().capitalize(),
                 "description": str(row.get("description", "")).strip()[:300],
                 "duration": _parse_duration(row.get("duration", "")),

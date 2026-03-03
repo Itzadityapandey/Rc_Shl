@@ -5,6 +5,7 @@ import { useState } from "react";
 /* ─── Types ────────────────────────────────────────────────── */
 interface Assessment {
   url: string;
+  name: string;
   adaptive_support: string;
   description: string;
   duration: number;
@@ -230,7 +231,7 @@ export default function Home() {
                                 className="assessment-name-link"
                                 title={a.description}
                               >
-                                {extractName(a.url)}
+                                {a.name || extractName(a.url)}
                               </a>
                             </td>
                             <td>

@@ -131,6 +131,7 @@ def _recommend(query_text, top_n=10):
     for _, row, _ in results[:top_n]:
         out.append({
             "url": row.get("url", ""),
+            "name": row.get("name", ""),
             "adaptive_support": str(row.get("adaptive_support","No")).strip().capitalize(),
             "description": str(row.get("description","")).strip()[:300],
             "duration": _parse_dur(row.get("duration","")),

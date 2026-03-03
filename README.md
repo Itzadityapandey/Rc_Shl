@@ -1,171 +1,167 @@
 # SHL Assessment Recommender
 
-An intelligent system that recommends relevant SHL assessments based on a job description or a job posting URL. It uses Google Gemini embeddings for semantic matching and Streamlit for an interactive user interface.This project is a web-based tool designed to recommend SHL assessments for hiring managers based on job descriptions or job posting URLs. The system is optimized for easy access and deployment.
+An AI-powered web application that recommends SHL assessments based on job descriptions or natural language queries.
 
+## 🔗 Submission URLs
 
+| Resource | URL |
+|---|---|
+| **GitHub** | https://github.com/Itzadityapandey/Rc_Shl |
+| **API Health** | `https://<your-vercel-app>.vercel.app/api/health` |
+| **API Recommend** | `https://<your-vercel-app>.vercel.app/api/recommend` |
+| **Frontend** | `https://<your-vercel-app>.vercel.app` |
 
-## Features
+> Replace `<your-vercel-app>` once deployed on Vercel.
 
-- Accepts job descriptions via text or URL
-- Extracts and cleans job content from web pages
-- Generates embeddings using the Google Gemini API
-- Computes semantic similarity with pre-embedded SHL assessments
-- Recommends top assessments with metadata and links
-- Provides both interactive UI and JSON output for API use
-- Supports automated SHL catalog crawling and dataset updates
+---
 
+## 🏗️ Architecture
 
-
-## How It Works
-
-1. User submits a job description or a job posting URL.
-2. The description is embedded using Gemini.
-3. A dataset of SHL assessments (with precomputed embeddings) is loaded.
-4. Cosine similarity is used to identify the closest matches.
-5. The top recommendations are displayed with relevant details.
-
-
-
-## Architecture
-
-<p align="center">
-  <img src="assets/assetsarchitecture.png" alt="SHL Architecture" width="300"/>
-</p>
-The system follows a modular design:
-- Input layer (URL or text)
-- Embedding generation via Gemini API
-- Similarity scoring using scikit-learn
-- Result rendering in Streamlit UI and JSON output
-
-
-
-## Quick Start
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-username/shl-assessment-recommender.git
-cd shl-assessment-recommender
+```
+User Query / JD / URL
+        ↓
+Next.js Frontend (React)
+        ↓ POST /api/recommend
+Python Serverless Function (Vercel)
+        ↓
+  1. Gemini Flash query expansion (LLM, 1 call)
+  2. Gemini text-embedding-004 (embed query)
+  3. Cosine similarity on 321+ pre-embedded assessments
+  4. Balanced ranking (Personality + Cognitive mix)
+        ↓
+JSON response (≤10 assessments)
 ```
 
-### 2. Install Dependencies
+---
 
+## 📋 API Specification
+
+### `GET /api/health`
+```json
+{"status": "healthy"}
+```
+
+### `POST /api/recommend`
+**Request:**
+```json
+{
+  "query": "Looking for Java developer assessments",
+  "job_url": "https://example.com/job/123"
+}
+```
+*(Provide at least one of `query` or `job_url`)*
+
+**Response:**
+```json
+{
+  "recommended_assessments": [
+    {
+      "url": "https://www.shl.com/solutions/products/product-catalog/view/core-java-entry-level-new/",
+      "adaptive_support": "No",
+      "description": "Assess Java programming skills...",
+      "duration": 35,
+      "remote_support": "Yes",
+      "test_type": ["K"]
+    }
+  ]
+}
+```
+
+---
+
+## ⚙️ Setup & Running Locally
+
+### Prerequisites
+- Python 3.10+
+- Node.js 18+
+- Gemini API key
+
+### 1. Install Python dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configure API Key
+### 2. Run data augmentation (ONE TIME — before first deploy)
+```bash
+set GEMINI_API_KEY=your-key
+python scripts/augment_and_embed.py
+```
+This merges `Gen_AI Dataset.xlsx` with `shl_assessments.csv` and computes any missing embeddings → outputs `shl_assessments_v2.csv`.
 
-Create a `.streamlit/secrets.toml` file:
-
-```toml
-GEMINI_API_KEY = "your_gemini_api_key"
+### 3. Run local dev server (Terminal 1)
+```bash
+set GEMINI_API_KEY=your-key
+python dev_server.py
 ```
 
-> Do not commit this file. Add it to `.gitignore`.
-
-
-
-## Deployment (Streamlit Cloud)
-
-1. Push the project to GitHub.
-2. Go to [streamlit.io/cloud](https://streamlit.io/cloud).
-3. Connect your repository.
-4. Add the `GEMINI_API_KEY` in the Secrets section of the app settings.
-5. Deploy your app.
-
-
-
-## 🧪 API Testing & Usage
-
-In addition to the Streamlit interface, the system provides a RESTful API for integration into external workflows.
-
-### 🔍 Health Check
-
-**GET**  
-`https://shl-recommendation-system-6d1j.onrender.com/`
-
-**Response:**
-
-```json
-{ "status": "healthy" }
+### 4. Run Next.js frontend (Terminal 2)
+```bash
+cd frontend
+npm install
+npm run dev
+# Open http://localhost:3000
 ```
-
-### 🧠 Recommendation Endpoint
-
-**POST**  
-`https://shl-recommendation-system-6d1j.onrender.com/recommend`
-
-#### Example Input (JSON)
-
-```json
-{
-  "job_description": "We are looking for a data analyst with strong SQL and Python skills."
-}
-```
-
-or
-
-```json
-{
-  "job_url": "https://example.com/job-posting"
-}
-```
-
-#### Sample Output
-
-```json
-[
-  {
-    "Assessment Name": "Data Analysis Test",
-    "URL": "https://www.shl.com/...",
-    "Remote Testing Support": "Yes",
-    "Adaptive/IRT Support": "Yes",
-    "Duration": "40 mins",
-    "Test Type": "Cognitive"
-  }
-]
-```
-
-You can test the API via [Postman](https://www.postman.com/) or any REST client.
 
 ---
 
-## 🧯 Error Handling
+## 📊 Evaluation
 
-| Scenario               | Response                          |
-|------------------------|-----------------------------------|
-| Missing API key        | Instruction to set credentials    |
-| No input provided      | Prompt requesting input           |
-| Invalid job URL        | Validation error                  |
-| Gemini API failure     | Graceful fallback or error shown  |
-| No matching assessments| Friendly message displayed        |
+### Mean Recall@10 vs. Train Set
+```bash
+set GEMINI_API_KEY=your-key
+python evaluation/evaluate.py
+```
+
+### Generate Predictions for Test Set
+```bash
+set GEMINI_API_KEY=your-key
+python evaluation/generate_predictions.py
+# Output: evaluation/predictions.csv
+```
 
 ---
 
-## Project Structure
+## 🚀 Deploying to Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Import GitHub repo: `Itzadityapandey/Rc_Shl`
+3. Set **Root Directory** to `./` (repo root)
+4. Add env variable: `GEMINI_API_KEY = <your-key>`
+5. Deploy
+
+---
+
+## 📁 Project Structure
 
 ```
-├── app.py                  # Streamlit frontend
-├── recommender.py          # Embedding and similarity logic
-├── crawler.py              # SHL scraper and embedding builder
-├── shl_assessments.csv # Assessment dataset
-├── assets/
-│   └── assetsarchitecture.png  # Architecture diagram
-├── requirements.txt        # Dependencies
-└── .streamlit/
-    └── secrets.toml        # API key (excluded from Git)
+├── api/
+│   ├── health.py              # GET /api/health
+│   └── recommend.py           # POST /api/recommend (optimized serverless)
+├── frontend/                  # Next.js 15 React app
+│   └── src/app/
+│       ├── page.tsx           # Home: input + results table
+│       ├── about/page.tsx     # About / approach page
+│       └── components/Navbar.tsx
+├── evaluation/
+│   ├── evaluate.py            # Mean Recall@K evaluation
+│   ├── generate_predictions.py  # Generates predictions.csv
+│   ├── train_set.csv          # 65 labeled Q→URL pairs
+│   └── test_set.csv           # 9 unlabeled test queries
+├── scripts/
+│   └── augment_and_embed.py   # Data merge + vectorization script
+├── crawler.py                 # SHL catalog web scraper
+├── dev_server.py              # Local Flask dev server
+├── shl_assessments.csv        # Scraped catalog (321 assessments)
+├── vercel.json                # Vercel deployment config
+└── requirements.txt
 ```
 
+---
 
+## 🛠️ Tech Stack
 
-
-
-## Technologies Used
-
-- Google Gemini API (text embeddings)
-- scikit-learn (cosine similarity)
-- BeautifulSoup (web scraping)
-- Streamlit (web interface)
-- pandas, numpy (data processing)
-
+- **Frontend**: Next.js 15, React, TypeScript
+- **Backend**: Python Serverless Functions (Vercel)
+- **AI**: Google Gemini — `text-embedding-004` + `gemini-1.5-flash`
+- **Search**: Cosine similarity (numpy), balanced personality/cognitive ranking
+- **Data**: 321+ SHL individual test solutions scraped from official catalog

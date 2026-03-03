@@ -1,26 +1,26 @@
 {
     "version": 2,
-    "buildCommand": "cd frontend && npm run build",
-    "outputDirectory": "frontend/.next",
-    "framework": "nextjs",
-    "installCommand": "cd frontend && npm install",
-    "functions": {
-        "api/*.py": {
-            "runtime": "vercel-python@3.0",
-            "maxDuration": 30
-        }
-    },
-    "rewrites": [
+    "builds": [
         {
-            "source": "/api/:path*",
-            "destination": "/api/:path*"
+            "src": "frontend/package.json",
+            "use": "@vercel/next"
         },
         {
-            "source": "/(.*)",
-            "destination": "/frontend/$1"
+            "src": "api/*.py",
+            "use": "@vercel/python",
+            "config": {
+                "maxDuration": 30
+            }
         }
     ],
-    "env": {
-        "GEMINI_API_KEY": "@gemini_api_key"
-    }
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "/api/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/frontend/$1"
+        }
+    ]
 }
