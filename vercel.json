@@ -1,0 +1,26 @@
+{
+    "version": 2,
+    "buildCommand": "cd frontend && npm run build",
+    "outputDirectory": "frontend/.next",
+    "framework": "nextjs",
+    "installCommand": "cd frontend && npm install",
+    "functions": {
+        "api/*.py": {
+            "runtime": "vercel-python@3.0",
+            "maxDuration": 30
+        }
+    },
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "/api/:path*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/frontend/$1"
+        }
+    ],
+    "env": {
+        "GEMINI_API_KEY": "@gemini_api_key"
+    }
+}
