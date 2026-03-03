@@ -13,5 +13,19 @@
             "src": "frontend/package.json",
             "use": "@vercel/next"
         }
+    ],
+    "routes": [
+        {
+            "src": "/api/health",
+            "dest": "/api/health.py"
+        },
+        {
+            "src": "/api/recommend",
+            "dest": "/api/recommend.py"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/frontend/$1"
+        }
     ]
 }
