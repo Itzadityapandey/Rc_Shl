@@ -8,8 +8,8 @@ import json
 
 # Gemini API configuration
 GEMINI_API_KEY = "XYZ"  # Replace with your API key from https://ai.google.dev/
-GEMINI_TEXT_MODEL = "gemini-2.0-flash"
-GEMINI_EMBEDDING_MODEL = "text-embedding-004"
+GEMINI_TEXT_MODEL = "gemini-2.5-flash"
+GEMINI_EMBEDDING_MODEL = "gemini-embedding-001"
 
 BASE_URL = "https://www.shl.com/solutions/products/product-catalog/"
 HEADERS = {
@@ -223,3 +223,4 @@ if __name__ == "__main__":
     print("🚀 Starting SHL catalog scrape...")
     df = scrape_shl_catalog()
     save_to_csv(df)
+
