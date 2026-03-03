@@ -25,7 +25,7 @@ load_dotenv(os.path.join(_ROOT, ".env"))
 # CONFIG
 # ────────────────────────────────────────────
 GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
-EMBEDDING_MODEL = "text-embedding-004"
+EMBEDDING_MODEL = "gemini-embedding-001"
 HEADERS = {"Content-Type": "application/json"}
 
 

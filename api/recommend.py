@@ -27,7 +27,7 @@ _emb_matrix    = None   # np.ndarray shape (N, D)
 _valid_indices = None   # list[int] → row indices with valid embeddings
 
 GEMINI_API_KEY    = os.getenv("GEMINI_API_KEY", "")
-EMBED_MODEL       = "text-embedding-004"
+EMBED_MODEL       = "gemini-embedding-001"
 FLASH_MODEL       = "gemini-1.5-flash"
 BASE_API          = "https://generativelanguage.googleapis.com/v1beta"
 HEADERS_JSON      = {"Content-Type": "application/json"}
@@ -55,13 +55,23 @@ def _load_catalog():
             try:
                 emb = json.loads(row.get("embedding", "[]") or "[]")
                 if isinstance(emb, list) and len(emb) > 0:
-                    embeddings.append(emb)
-                    valid_idx.append(i)
+                    embeddings.append((i, emb))
             except Exception:
                 pass
 
+    # Filter to a single consistent dimension (most common wins)
+    if embeddings:
+        from collections import Counter
+        dim_counts = Counter(len(e) for _, e in embeddings)
+        target_dim = dim_counts.most_common(1)[0][0]
+        filtered = [(i, e) for i, e in embeddings if len(e) == target_dim]
+        valid_idx = [i for i, _ in filtered]
+        emb_list  = [e for _, e in filtered]
+    else:
+        valid_idx, emb_list = [], []
+
     _df_rows       = rows
-    _emb_matrix    = np.array(embeddings, dtype=np.float32) if embeddings else np.array([])
+    _emb_matrix    = np.array(emb_list, dtype=np.float32) if emb_list else np.array([])
     _valid_indices = valid_idx
     print(f"[catalog] Loaded {len(rows)} rows, {len(valid_idx)} with embeddings.")
 
